@@ -19,6 +19,20 @@ export const getAvailableCourses = async (req, res) => {
 export const submitRegistration = async (req, res) => {
   const { level, semester, course_ids } = req.body;
 
+  const { data: existing } = await supabase
+  .from("registrations")
+  .select("*")
+  .eq("student_id", req.user.id)
+  .eq("semester", semester)
+  .eq("level", level)
+  .maybeSingle();
+
+if (existing) {
+  return res.status(400).json({
+    message: "You already registered for this semester"
+  });
+}
+
   // 1. create registration
   const { data: reg, error: regError } = await supabase
     .from("registrations")
