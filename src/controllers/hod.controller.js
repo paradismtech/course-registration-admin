@@ -74,18 +74,40 @@ export const addCourse = async (req, res) => {
 
 // Get courses by programme/level/semester
 export const getCourses = async (req, res) => {
-  const { programme_id, level, semester } = req.query;
+  try {
+    // Get HOD profile
+    const { data: hod } = await supabase
+      .from("hods")
+      .select("*")
+      .eq("user_id", req.user.id)
+      .single();
 
-  const { data, error } = await supabase
-    .from("courses")
-    .select("*")
-    .eq("programme_id", programme_id)
-    .eq("level", level)
-    .eq("semester", semester);
+    if (!hod) {
+      return res.status(403).json({
+        message: "HOD profile not found"
+      });
+    }
 
-  if (error) return res.status(400).json({ error });
+    // Get programmes in the department
+    const { data: programmes } = await supabase
+      .from("programmes")
+      .select("id")
+      .eq("department_id", hod.department_id);
 
-  res.json(data);
+    const programmeIds = programmes.map(p => p.id);
+
+    // Get courses in those programmes
+    const { data, error } = await supabase
+      .from("courses")
+      .select("*")
+      .in("programme_id", programmeIds);
+
+    if (error) return res.status(400).json({ error });
+
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
 
 export const getRegistrations = async (req, res) => {
@@ -111,4 +133,32 @@ export const updateRegistration = async (req, res) => {
   if (error) return res.status(400).json({ error });
 
   res.json(data);
+};
+export const getProgrammes = async (
+  req,
+  res
+) => {
+
+  try {
+
+    const { data, error } =
+      await supabase
+        .from("programmes")
+        .select("*");
+
+    if (error) {
+      return res.status(400).json({
+        error: error.message
+      });
+    }
+
+    res.json(data);
+
+  } catch (err) {
+
+    res.status(500).json({
+      error: err.message
+    });
+
+  }
 };

@@ -3,7 +3,8 @@ import {
   createFaculty,
   createDepartment,
   createProgramme,
-  assignHOD
+  assignHOD,
+  getStructure
 } from "../controllers/dean.controller.js";
 
 import { protect, authorize } from "../middleware/middleware.js";
@@ -14,5 +15,6 @@ DeanRouter.post("/faculty", protect, authorize("DEAN"), createFaculty);
 DeanRouter.post("/department", protect, authorize("DEAN"), createDepartment);
 DeanRouter.post("/programme", protect, authorize("DEAN"), createProgramme);
 DeanRouter.post("/assign-hod", protect, authorize("DEAN"), assignHOD);
+DeanRouter.get("/structure", protect, authorize("DEAN"), getStructure);
 
 export default DeanRouter;

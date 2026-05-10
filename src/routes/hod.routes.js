@@ -1,6 +1,6 @@
 import express from "express";
 import { addCourse, getCourses, getRegistrations,
-  updateRegistration } from "../controllers/hod.controller.js";
+  updateRegistration, getProgrammes } from "../controllers/hod.controller.js";
 import { protect, authorize } from "../middleware/middleware.js";
 
 const HodRouter = express.Router();
@@ -21,6 +21,12 @@ HodRouter.put(
   protect,
   authorize("HOD"),
   updateRegistration
+);
+HodRouter.get(
+  "/programmes",
+  protect,
+  authorize("HOD"),
+  getProgrammes
 );
 
 export default HodRouter;

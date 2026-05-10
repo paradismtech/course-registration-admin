@@ -17,16 +17,15 @@ app.use(express.json());
 app.use(cors({
   origin: [
     "http://localhost:5173",
-    "https://course-registration-admin.vercel.app"
   ],
   credentials: true
 }));
 
 // Health check endpoint enable on local development only
-// const port = process.env.PORT || 3000;
-// app.listen(port, () => {
-//   console.log(`Server is running on port ${port}`);
-// });
+const port = process.env.PORT || 3000;
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
+});
 
 // Basic route for testing
 app.get("/", (req, res) => res.json({ status: "ok", service: "course-registration-backend" }));

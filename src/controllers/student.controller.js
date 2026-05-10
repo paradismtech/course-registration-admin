@@ -1,20 +1,70 @@
 import supabase from "../config/db.js";
 
 // Student views courses
-export const getAvailableCourses = async (req, res) => {
-  const { programme_id, level, semester } = req.query;
+  export const getAvailableCourses = async (req, res) => {
+    try {
 
-  const { data, error } = await supabase
-    .from("courses")
-    .select("*")
-    .eq("programme_id", programme_id)
-    .eq("level", level)
-    .eq("semester", semester);
+      const { id } = req.user;
 
-  if (error) return res.status(400).json({ error });
+      // get student profile
+      const {
+        data: student,
+        error: studentError
+      } = await supabase
+        .from("students")
+        .select("*")
+        .eq("user_id", id)
+        .single();
 
-  res.json(data);
-};
+      if (studentError) {
+
+        return res.status(400).json({
+          error: studentError.message
+        });
+
+      }
+
+      // current semester
+      const currentSemester = 1; // this can be dynamic based on date
+
+      // fetch matching courses
+      const {
+        data: courses,
+        error: courseError
+      } = await supabase
+        .from("courses")
+        .select("*")
+        .eq(
+          "programme_id",
+          student.programme_id
+        )
+        .eq(
+          "level",
+          student.level
+        )
+        .eq(
+          "semester",
+          currentSemester
+        );
+
+      if (courseError) {
+
+        return res.status(400).json({
+          error: courseError.message
+        });
+
+      }
+
+      res.json(courses);
+
+    } catch (err) {
+
+      res.status(500).json({
+        error: err.message
+      });
+
+    }
+  };
 
 export const submitRegistration = async (req, res) => {
   const { level, semester, course_ids } = req.body;
