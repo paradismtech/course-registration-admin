@@ -38,7 +38,44 @@ export const createProgramme = async (req, res) => {
 
   res.json(data);
 };
+export const getDepartments = async ( req, res) => {
+  try {
+    const { data, error } = await supabase
+        .from("departments")
+        .select(`*`);
+    if (error) {
+      return res.status(400).json({
+        error: error.message
+      });
+    }
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+export const getHods = async (
+  req,
+  res
+) => {
 
+  try {
+
+    const { data, error } =
+      await supabase
+        .from("hods")
+        .select(`*,users ( id, staff_no, role)`);
+    if (error) {
+      return res.status(400).json({
+        error: error.message
+      });
+    }
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({
+      error: err.message
+    });
+  }
+};
 export const assignHOD = async (req, res) => {
   const { department_id, hod_user_id } = req.body;
 
