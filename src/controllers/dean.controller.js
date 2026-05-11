@@ -38,37 +38,37 @@ export const createProgramme = async (req, res) => {
 
   res.json(data);
 };
-export const getDepartments = async ( req, res) => {
+export const getDepartments = async (req, res) => {
   try {
     const { data, error } = await supabase
-        .from("departments")
-        .select(`*`);
+      .from("departments")
+      .select("id, name");
+
     if (error) {
       return res.status(400).json({
         error: error.message
       });
     }
+
     res.json(data);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
-export const getHods = async (
-  req,
-  res
-) => {
 
+export const getHods = async (req, res) => {
   try {
+    const { data, error } = await supabase
+      .from("users")
+      .select("id, full_name")
+      .eq("role", "HOD");
 
-    const { data, error } =
-      await supabase
-        .from("hods")
-        .select(`*,users ( id, staff_no, role)`);
     if (error) {
       return res.status(400).json({
         error: error.message
       });
     }
+
     res.json(data);
   } catch (err) {
     res.status(500).json({
@@ -79,15 +79,39 @@ export const getHods = async (
 export const assignHOD = async (req, res) => {
   const { department_id, hod_user_id } = req.body;
 
-  const { data, error } = await supabase
+  // Check if HOD profile exists, create if not
+  const { data: existingHod } = await supabase
+    .from("hods")
+    .select("*")
+    .eq("user_id", hod_user_id)
+    .maybeSingle();
+
+  if (!existingHod) {
+    const { error: insertError } = await supabase
+      .from("hods")
+      .insert([{ user_id: hod_user_id, department_id }]);
+
+    if (insertError) return res.status(400).json({ error: insertError });
+  } else {
+    // Update existing HOD with department
+    const { error: hodError } = await supabase
+      .from("hods")
+      .update({ department_id })
+      .eq("user_id", hod_user_id);
+
+    if (hodError) return res.status(400).json({ error: hodError });
+  }
+
+  // Update department with HOD
+  const { data: deptData, error: deptError } = await supabase
     .from("departments")
     .update({ hod_id: hod_user_id })
     .eq("id", department_id)
     .select();
 
-  if (error) return res.status(400).json({ error });
+  if (deptError) return res.status(400).json({ error: deptError });
 
-  res.json(data);
+  res.json(deptData);
 };
 
 export const getStructure = async (req, res) => {
